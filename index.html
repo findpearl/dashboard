@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pearl Dashboard</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@300,400,500,700&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --pink: #F72585;
+  --pink-dark: #D41F72;
+  --pink-tint: #FEE8F1;
+  --celadon: #79B8A7;
+  --celadon-dark: #4A9A88;
+  --down: #D03B3B;
+
+  --page: #F5F3EE;
+  --card: #FFFFFF;
+  --ink: #2A1A0E;
+  --ink-2: #6B6058;
+  --ink-3: #8A8178;
+  --rule: #E5E2DB;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #110C08;
+    --card: #1E150F;
+    --ink: #EDE8E2;
+    --ink-2: #A89E94;
+    --ink-3: #8A8178;
+    --rule: #342618;
+  }
+}
+
+html { height: 100%; }
+
+body {
+  font-family: 'Cabinet Grotesk', system-ui, -apple-system, sans-serif;
+  background: var(--page);
+  color: var(--ink);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.shell {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 36px;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.brand-logo {
+  display: inline-flex;
+  align-items: flex-end;
+}
+
+.brand-logo-word {
+  font-size: 24px;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  line-height: 0.85;
+}
+
+.brand-logo-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 34%, #fff 0%, var(--pink-tint) 30%, var(--pink) 100%);
+  margin-left: 2px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.brand-label {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+
+.refresh-btn {
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.refresh-btn:hover { border-color: var(--pink); color: var(--pink-dark); }
+.refresh-btn:disabled { opacity: 0.5; cursor: default; }
+
+/* Users line (single metric, own time window, sits apart from the table) */
+.users-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  padding: 20px 22px;
+  margin-bottom: 14px;
+}
+.users-label {
+  font-size: 14px;
+  font-weight: 500;
+}
+.users-window {
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--ink-3);
+}
+.users-value {
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Metrics table: one metric per row, 1/3/7-day columns */
+.metrics-card {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.metrics-table th, .metrics-table td {
+  padding: 14px 20px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: 15px;
+}
+
+.metrics-table th {
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding-top: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.metrics-table td:first-child, .metrics-table th:first-child {
+  text-align: left;
+  font-variant-numeric: normal;
+}
+
+.metrics-table td:first-child {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.metrics-table tbody tr + tr td {
+  border-top: 1px solid var(--rule);
+}
+
+.metrics-table td { color: var(--ink-2); }
+.metrics-table td.value-main { color: var(--ink); font-weight: 500; }
+
+.legend {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink-3);
+}
+.legend p { margin-bottom: 8px; }
+.legend p:last-child { margin-bottom: 0; }
+.legend strong { color: var(--ink-2); font-weight: 500; }
+
+/* Access gate */
+.gate {
+  max-width: 360px;
+  margin: 120px auto 0;
+  text-align: center;
+}
+.gate p {
+  font-size: 14px;
+  color: var(--ink-2);
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+.gate input {
+  width: 100%;
+  font-family: inherit;
+  font-size: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+.gate input:focus {
+  outline: 2px solid var(--pink);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+.gate button {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  background: var(--pink);
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  width: 100%;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.gate button:hover { background: var(--pink-dark); }
+.gate .error {
+  color: var(--down);
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+.hidden { display: none !important; }
+
+@media (max-width: 520px) {
+  .shell { padding: 36px 18px 60px; }
+  .tile-value { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+
+<div id="gate" class="gate">
+  <div class="brand" style="justify-content:center; margin-bottom:20px;">
+    <span class="brand-logo"><span class="brand-logo-word">Pearl</span><span class="brand-logo-dot"></span></span>
+    <span class="brand-label">Dashboard</span>
+  </div>
+  <p>Enter the dashboard key to view product metrics.</p>
+  <input id="key-input" type="password" placeholder="Dashboard key" autocomplete="off">
+  <button id="key-submit">View dashboard</button>
+  <p id="gate-error" class="error hidden"></p>
+</div>
+
+<div id="shell" class="shell hidden">
+  <div class="header">
+    <div class="brand">
+      <span class="brand-logo"><span class="brand-logo-word">Pearl</span><span class="brand-logo-dot"></span></span>
+      <span class="brand-label">Dashboard</span>
+    </div>
+    <div class="meta">
+      <span id="updated-at">-</span>
+      <button id="refresh-btn" class="refresh-btn">Refresh</button>
+    </div>
+  </div>
+
+  <div id="users-line" class="users-line">
+    <span class="users-label">New users <span class="users-window">· last 7 days</span></span>
+    <span id="users-value" class="users-value">-</span>
+  </div>
+
+  <div class="metrics-card">
+    <table class="metrics-table">
+      <thead>
+        <tr>
+          <th>New in window</th>
+          <th>1 day</th>
+          <th>3 days</th>
+          <th>7 days</th>
+        </tr>
+      </thead>
+      <tbody id="metrics-body"></tbody>
+    </table>
+  </div>
+
+  <div class="legend">
+    <p><strong>New users</strong> — profiles created in the window, excluding critic outlet accounts.</p>
+    <p><strong>Meals logged</strong> — distinct user/restaurant/date combinations from real user bites (critic-ingested rows excluded).</p>
+    <p><strong>Pearls logged</strong> — real-user bites crowned as a Pearl. Excludes critic "must-order" flags, which are a separate signal.</p>
+    <p><strong>Critic picks ingested</strong> — bites sourced from critic review ingestion, new in the window.</p>
+    <p><strong>Restaurants hydrated</strong> — restaurants whose menu hydration completed in the window.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  var METRICS_URL = 'https://nwikrdzzzbrmntalglwm.supabase.co/functions/v1/dashboard-metrics';
+  var STORAGE_KEY = 'pearl_dashboard_key';
+
+  var gate = document.getElementById('gate');
+  var shell = document.getElementById('shell');
+  var keyInput = document.getElementById('key-input');
+  var keySubmit = document.getElementById('key-submit');
+  var gateError = document.getElementById('gate-error');
+  var usersValue = document.getElementById('users-value');
+  var metricsBody = document.getElementById('metrics-body');
+  var updatedAt = document.getElementById('updated-at');
+  var refreshBtn = document.getElementById('refresh-btn');
+
+  function fmt(n) {
+    return typeof n === 'number' ? n.toLocaleString('en-US') : '-';
+  }
+
+  function render(data) {
+    usersValue.textContent = fmt(data.new_users_7d);
+
+    var rows = [
+      { label: 'Meals logged', windows: data.meals_logged },
+      { label: 'Pearls logged', windows: data.pearls_logged },
+      { label: 'Critic picks ingested', windows: data.critic_picks_ingested },
+      { label: 'Restaurants hydrated', windows: data.restaurants_hydrated },
+    ];
+
+    metricsBody.innerHTML = rows.map(function (r) {
+      var w = r.windows || {};
+      return '<tr>' +
+        '<td>' + r.label + '</td>' +
+        '<td>' + fmt(w['1d']) + '</td>' +
+        '<td>' + fmt(w['3d']) + '</td>' +
+        '<td class="value-main">' + fmt(w['7d']) + '</td>' +
+        '</tr>';
+    }).join('');
+
+    var d = new Date(data.generated_at);
+    updatedAt.textContent = 'Updated ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  }
+
+  function load(key) {
+    refreshBtn.disabled = true;
+    refreshBtn.textContent = 'Loading...';
+    fetch(METRICS_URL, { headers: { 'x-dashboard-key': key } })
+      .then(function (res) {
+        if (res.status === 401) throw new Error('unauthorized');
+        if (!res.ok) throw new Error('request_failed');
+        return res.json();
+      })
+      .then(function (data) {
+        gate.classList.add('hidden');
+        shell.classList.remove('hidden');
+        render(data);
+      })
+      .catch(function (err) {
+        if (err.message === 'unauthorized') {
+          localStorage.removeItem(STORAGE_KEY);
+          shell.classList.add('hidden');
+          gate.classList.remove('hidden');
+          gateError.textContent = 'That key was rejected. Try again.';
+          gateError.classList.remove('hidden');
+        } else {
+          updatedAt.textContent = 'Failed to load metrics';
+        }
+      })
+      .finally(function () {
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = 'Refresh';
+      });
+  }
+
+  keySubmit.addEventListener('click', function () {
+    var key = keyInput.value.trim();
+    if (!key) return;
+    localStorage.setItem(STORAGE_KEY, key);
+    gateError.classList.add('hidden');
+    load(key);
+  });
+  keyInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') keySubmit.click();
+  });
+  refreshBtn.addEventListener('click', function () {
+    var key = localStorage.getItem(STORAGE_KEY);
+    if (key) load(key);
+  });
+
+  var savedKey = localStorage.getItem(STORAGE_KEY);
+  if (savedKey) load(savedKey);
+})();
+</script>
+
+</body>
+</html>
