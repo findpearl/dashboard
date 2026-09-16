@@ -122,16 +122,18 @@ body {
 .refresh-btn:hover { border-color: var(--pink); color: var(--pink-dark); }
 .refresh-btn:disabled { opacity: 0.5; cursor: default; }
 
-/* Users line (single metric, own time window, sits apart from the table) */
-.users-line {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+/* Users card (single metric, own time window, sits apart from the table) */
+.users-card {
   background: var(--card);
   border: 1px solid var(--rule);
   border-radius: 14px;
   padding: 20px 22px;
   margin-bottom: 14px;
+}
+.users-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
 }
 .users-label {
   font-size: 14px;
@@ -147,6 +149,39 @@ body {
   font-weight: 500;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
+}
+
+.users-list {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  max-height: 168px;
+  overflow-y: auto;
+}
+.users-list-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+}
+.users-list-item .name {
+  font-size: 13.5px;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.users-list-item .when {
+  font-size: 12px;
+  color: var(--ink-3);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.users-list-empty {
+  font-size: 13px;
+  color: var(--ink-3);
+  padding: 6px 0;
 }
 
 .trend {
@@ -303,9 +338,12 @@ body {
     </div>
   </div>
 
-  <div id="users-line" class="users-line">
-    <span class="users-label">New users <span class="users-window">· last 7 days</span></span>
-    <span id="users-value" class="users-value">-</span>
+  <div class="users-card">
+    <div class="users-header">
+      <span class="users-label">New users <span class="users-window">· last 7 days</span></span>
+      <span id="users-value" class="users-value">-</span>
+    </div>
+    <div id="users-list" class="users-list"></div>
   </div>
 
   <div class="metrics-card">
@@ -343,12 +381,19 @@ body {
   var keySubmit = document.getElementById('key-submit');
   var gateError = document.getElementById('gate-error');
   var usersValue = document.getElementById('users-value');
+  var usersList = document.getElementById('users-list');
   var metricsBody = document.getElementById('metrics-body');
   var updatedAt = document.getElementById('updated-at');
   var refreshBtn = document.getElementById('refresh-btn');
 
   function fmt(n) {
     return typeof n === 'number' ? n.toLocaleString('en-US') : '-';
+  }
+
+  function escapeHtml(s) {
+    var div = document.createElement('div');
+    div.textContent = String(s == null ? '' : s);
+    return div.innerHTML;
   }
 
   function trendBadge(pct) {
@@ -360,6 +405,21 @@ body {
 
   function render(data) {
     usersValue.innerHTML = fmt(data.new_users_7d) + trendBadge(data.new_users_change_pct);
+
+    var newUsers = data.new_users_list || [];
+    if (newUsers.length === 0) {
+      usersList.innerHTML = '<div class="users-list-empty">No new users in this window.</div>';
+    } else {
+      usersList.innerHTML = newUsers.map(function (u) {
+        var when = new Date(u.created_at).toLocaleString('en-US', {
+          month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+        });
+        return '<div class="users-list-item">' +
+          '<span class="name">' + escapeHtml(u.display_name) + '</span>' +
+          '<span class="when">' + when + '</span>' +
+          '</div>';
+      }).join('');
+    }
 
     var rows = [
       { label: 'Meals logged', windows: data.meals_logged },
