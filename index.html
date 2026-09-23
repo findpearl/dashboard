@@ -257,56 +257,6 @@ body {
 .legend p:last-child { margin-bottom: 0; }
 .legend strong { color: var(--ink-2); font-weight: 500; }
 
-/* Access gate */
-.gate {
-  max-width: 360px;
-  margin: 120px auto 0;
-  text-align: center;
-}
-.gate p {
-  font-size: 14px;
-  color: var(--ink-2);
-  margin-bottom: 20px;
-  line-height: 1.6;
-}
-.gate input {
-  width: 100%;
-  font-family: inherit;
-  font-size: 14px;
-  padding: 12px 14px;
-  border: 1px solid var(--rule);
-  border-radius: 10px;
-  background: var(--card);
-  color: var(--ink);
-  margin-bottom: 12px;
-}
-.gate input:focus {
-  outline: 2px solid var(--pink);
-  outline-offset: 1px;
-  border-color: transparent;
-}
-.gate button {
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  color: #fff;
-  background: var(--pink);
-  border: none;
-  border-radius: 10px;
-  padding: 12px 20px;
-  width: 100%;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-.gate button:hover { background: var(--pink-dark); }
-.gate .error {
-  color: var(--down);
-  font-size: 13px;
-  margin-top: 12px;
-}
-
-.hidden { display: none !important; }
-
 @media (max-width: 520px) {
   .shell { padding: 36px 18px 60px; }
   .tile-value { font-size: 28px; }
@@ -315,18 +265,7 @@ body {
 </head>
 <body>
 
-<div id="gate" class="gate">
-  <div class="brand" style="justify-content:center; margin-bottom:20px;">
-    <span class="brand-logo"><span class="brand-logo-word">Pearl</span><span class="brand-logo-dot"></span></span>
-    <span class="brand-label">Dashboard</span>
-  </div>
-  <p>Enter the dashboard key to view product metrics.</p>
-  <input id="key-input" type="password" placeholder="Dashboard key" autocomplete="off">
-  <button id="key-submit">View dashboard</button>
-  <p id="gate-error" class="error hidden"></p>
-</div>
-
-<div id="shell" class="shell hidden">
+<div id="shell" class="shell">
   <div class="header">
     <div class="brand">
       <span class="brand-logo"><span class="brand-logo-word">Pearl</span><span class="brand-logo-dot"></span></span>
@@ -373,13 +312,7 @@ body {
 <script>
 (function () {
   var METRICS_URL = 'https://nwikrdzzzbrmntalglwm.supabase.co/functions/v1/dashboard-metrics';
-  var STORAGE_KEY = 'pearl_dashboard_key';
 
-  var gate = document.getElementById('gate');
-  var shell = document.getElementById('shell');
-  var keyInput = document.getElementById('key-input');
-  var keySubmit = document.getElementById('key-submit');
-  var gateError = document.getElementById('gate-error');
   var usersValue = document.getElementById('users-value');
   var usersList = document.getElementById('users-list');
   var metricsBody = document.getElementById('metrics-body');
@@ -442,30 +375,17 @@ body {
     updatedAt.textContent = 'Updated ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   }
 
-  function load(key) {
+  function load() {
     refreshBtn.disabled = true;
     refreshBtn.textContent = 'Loading...';
-    fetch(METRICS_URL, { headers: { 'x-dashboard-key': key } })
+    fetch(METRICS_URL)
       .then(function (res) {
-        if (res.status === 401) throw new Error('unauthorized');
         if (!res.ok) throw new Error('request_failed');
         return res.json();
       })
-      .then(function (data) {
-        gate.classList.add('hidden');
-        shell.classList.remove('hidden');
-        render(data);
-      })
-      .catch(function (err) {
-        if (err.message === 'unauthorized') {
-          localStorage.removeItem(STORAGE_KEY);
-          shell.classList.add('hidden');
-          gate.classList.remove('hidden');
-          gateError.textContent = 'That key was rejected. Try again.';
-          gateError.classList.remove('hidden');
-        } else {
-          updatedAt.textContent = 'Failed to load metrics';
-        }
+      .then(render)
+      .catch(function () {
+        updatedAt.textContent = 'Failed to load metrics';
       })
       .finally(function () {
         refreshBtn.disabled = false;
@@ -473,23 +393,8 @@ body {
       });
   }
 
-  keySubmit.addEventListener('click', function () {
-    var key = keyInput.value.trim();
-    if (!key) return;
-    localStorage.setItem(STORAGE_KEY, key);
-    gateError.classList.add('hidden');
-    load(key);
-  });
-  keyInput.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') keySubmit.click();
-  });
-  refreshBtn.addEventListener('click', function () {
-    var key = localStorage.getItem(STORAGE_KEY);
-    if (key) load(key);
-  });
-
-  var savedKey = localStorage.getItem(STORAGE_KEY);
-  if (savedKey) load(savedKey);
+  refreshBtn.addEventListener('click', load);
+  load();
 })();
 </script>
 
